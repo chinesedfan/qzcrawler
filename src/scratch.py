@@ -39,7 +39,7 @@ def scratch_msgboard(logfile):
     real_args["scratch_item"] = "msgboard"
     real_args["url_template"] = "/cgi-bin/new/get_msgb?" \
         + "uin=%s&hostUin=%s" % (config.G_QQ, config.H_QQ) \
-        + "&inCharset=%s&outCharset=%s&format=%s" % ("gbk", "gbk", "jsonp") \
+        + "&inCharset=%s&outCharset=%s&format=%s" % (real_args["code"], real_args["code"], "jsonp") \
         + "&g_tk=%s" % config.G_TK \
         + "&num=%d&start=%d"
     
@@ -57,7 +57,7 @@ def scratch_bloglist(logfile):
     real_args["scratch_item"] = "bloglist"
     real_args["url_template"] = "/cgi-bin/blognew/get_abs?" \
         + "uin=%s&hostUin=%s" % (config.G_QQ, config.H_QQ) \
-        + "&inCharset=%s&outCharset=%s&format=%s" % ("gbk", "gbk", "jsonp") \
+        + "&inCharset=%s&outCharset=%s&format=%s" % (real_args["code"], real_args["code"], "jsonp") \
         + "&g_tk=%s" % config.G_TK \
         + "&blogType=0&reqInfo=1" \
         + "&num=%d&pos=%d"
@@ -68,7 +68,23 @@ def scratch_bloglist(logfile):
     scratch_template(real_args)
 
 def scratch_blogcmt(blogid, logfile, append):
-    pass
+    real_args = copy.deepcopy(args_template)
+    real_args["host"] = "b1.qzone.qq.com"
+    real_args["headers"] = {"Host": real_args["host"], "Cookie": config.COOKIE}
+    real_args["logfile"] = logfile
+    real_args["num"] = 15
+    real_args["scratch_item"] = "blogcmt"
+    real_args["url_template"] = "/cgi-bin/blognew/get_comment_list?" \
+        + "uin=%s&hostUin=%s" % (config.G_QQ, config.H_QQ) \
+        + "&inCharset=%s&outCharset=%s&format=%s" % (real_args["code"], real_args["code"], "jsonp") \
+        + "&g_tk=%s" % config.G_TK \
+        + "&topicId=%s_%s" % (config.H_QQ, blogid) \
+        + "&num=%d&start=%d"
+    
+    real_args["mark1"] = "total\":"
+    real_args["mark2"] = ","   
+    
+    scratch_template(real_args)
 
 def scratch_shuoshuo(logfile):
     real_args = copy.deepcopy(args_template)
@@ -77,16 +93,15 @@ def scratch_shuoshuo(logfile):
     real_args["logfile"] = logfile
     real_args["num"] = 20
     real_args["scratch_item"] = "shuoshuo"
+    real_args["code"] = "utf-8"
     real_args["url_template"] = "/cgi-bin/emotion_cgi_msglist_v6?" \
         + "uin=%s&hostUin=%s" % (config.G_QQ, config.H_QQ) \
-        + "&inCharset=%s&outCharset=%s&format=%s" % ("gbk", "gbk", "jsonp") \
+        + "&inCharset=%s&outCharset=%s&format=%s" % (real_args["code"], real_args["code"], "jsonp") \
         + "&g_tk=%s" % config.G_TK \
         + "&num=%d&pos=%d"
     
     real_args["mark1"] = "msgnum\":"
     real_args["mark2"] = ","
-    
-    real_args["code"] = "utf-8"
     
     scratch_template(real_args)
 
@@ -98,7 +113,7 @@ def scratch_albumlist(logfile):
     real_args["scratch_item"] = "albumlist"
     real_args["url_template"] = "/fcgi-bin/fcg_list_album_v2?" \
         + "uin=%s&hostUin=%s" % (config.G_QQ, config.H_QQ) \
-        + "&inCharset=%s&outCharset=%s&format=%s" % ("gbk", "gbk", "jsonp") \
+        + "&inCharset=%s&outCharset=%s&format=%s" % (real_args["code"], real_args["code"], "jsonp") \
         + "&g_tk=%s" % config.G_TK \
         + "&num=%d&start=%d" # non-sense in this function
     
@@ -115,10 +130,49 @@ def scratch_albumlist(logfile):
             break
 
 def scratch_photolist(albumid, logfile, append):
-    pass
+    real_args = copy.deepcopy(args_template)
+    
+    real_args["logfile"] = logfile
+    real_args["num"] = 12
+    real_args["scratch_item"] = "photolist"
+    real_args["url_template"] = "/fcgi-bin/cgi_list_photo?" \
+        + "uin=%s&hostUin=%s" % (config.G_QQ, config.H_QQ) \
+        + "&inCharset=%s&outCharset=%s&format=%s" % (real_args["code"], real_args["code"], "jsonp") \
+        + "&g_tk=%s" % config.G_TK \
+        + "&topicId=%s" % albumid \
+        + "&pageNum=%d&pageStart=%d"
+    
+    real_args["mark1"] = "totalInAlbum\" : "
+    real_args["mark2"] = ","
+    
+    # try following known servers until get the list, still not always work
+    album_hosts = ['hzplist.photo.qq.com']    
+    for host in album_hosts:  
+        real_args["host"] = host
+        real_args["headers"] = {"Host": real_args["host"], "Cookie": config.COOKIE}
+        ret, n = scratch_template(real_args)
+        if ret and n > 0:
+            break
 
-def scratch_photocmt(photid, logfile, append):
-    pass
+def scratch_photocmt(albumid, photoid, logfile, append):
+    real_args = copy.deepcopy(args_template)
+    real_args["host"] = "app.photo.qq.com"
+    real_args["headers"] = {"Host": real_args["host"], "Cookie": config.COOKIE}
+    real_args["logfile"] = logfile
+    real_args["num"] = 5
+    real_args["scratch_item"] = "photocmt"
+    real_args["code"] = "utf-8"
+    real_args["url_template"] = "/cgi-bin/app/cgi_pcomment_xml_v2?" \
+        + "uin=%s&hostUin=%s" % (config.G_QQ, config.H_QQ) \
+        + "&inCharset=%s&outCharset=%s&format=%s" % (real_args["code"], real_args["code"], "jsonp") \
+        + "&g_tk=%s" % config.G_TK \
+        + "&topicId=%s_%s" % (albumid, photoid) \
+        + "&num=%d&start=%d"
+    
+    real_args["mark1"] = "total\" : "
+    real_args["mark2"] = "\n"   
+    
+    scratch_template(real_args)
 
 '''
 Internal helper function

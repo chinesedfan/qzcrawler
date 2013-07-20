@@ -18,10 +18,10 @@ def analyze_msgboard(logfile):
         cmtlst = data["data"]["commentList"]        
         print "got commentList=%d" % len(cmtlst)
         for cmt in cmtlst:
-            db.insert_msgboard(cmt["id"], cmt["uin"], cmt["ubbContent"],
-                               cmt["pubtime"], cmt["modifytime"])
-    
             rpllst = cmt["replyList"]
+            db.insert_msgboard(cmt["id"], cmt["uin"], cmt["ubbContent"],
+                               cmt["pubtime"], cmt["modifytime"], len(rpllst))
+    
             print "got replyList=%d" % len(rpllst)
             for i in range(0, len(rpllst)):
                 rpl = rpllst[i]

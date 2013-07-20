@@ -7,42 +7,51 @@ db.py - Communicate with SQLite database
 import sqlite3
 
 dbfile = "../db/qzone.db"
+sqlfile = "../db/db.sql"
 
 conn = None
 cursor = None
 
 def execute_cmd(cmd, *args):
-    global conn, cursor
-    if conn is None:
-        conn = sqlite3.connect(dbfile)
-        cursor = conn.cursor()
+    init_conn()
     return cursor.execute(cmd, args)
 
-def is_table_existed(tablename):
-    cmd = "SELECT count(*) FROM sqlite_master " \
-          "WHERE type='table' AND name=?"
-    row = execute_cmd(cmd, tablename).fetchone()
-    return (row and row[0] != 0)
+def execute_list(cmd, lst):
+    init_conn()
+    return cursor.executemany(cmd, lst)
 
-def drop_table(tablename):
-    cmd = "DROP TABLE IF EXISTS %s" % tablename
-    execute_cmd(cmd)
+def execute_script(script):
+    init_conn()
+    return cursor.executescript(script)
+
+def init_conn():
+    global dbfile
+    global conn, cursor
+    if conn is None:
+        print "connect to %s..." % dbfile,
+        conn = sqlite3.connect(dbfile)
+        cursor = conn.cursor()
+        print "done."
 
 def init_db():
-    drop_table("msgboard")
-    drop_table("msgreply")
+    global dbfile, sqlfile
     
-    cmds = ["CREATE TABLE msgboard(cmtid, uin, content, pubtime, modifytime, PRIMARY KEY(cmtid))",
-            "CREATE TABLE msgreply(cmtid, rplid, uin, content, time, PRIMARY KEY(cmtid, rplid))",]
-           
-    for c in cmds:
-        execute_cmd(c)
+    print "clear %s..." % dbfile,
+    f = open(dbfile, 'w')
+    f.close()
+    print "done."
+    
+    print "load %s..." % sqlfile
+    f = open(sqlfile)
+    execute_script(f.read())
+    f.close()
+    print "...done."
 
-def insert_msgboard(cmtid, uin, content, pubtime, modifytime):
+def insert_msgboard(cmtid, uin, content, pubtime, modifytime, replynum):
     cmd = "DELETE FROM msgboard WHERE cmtid=?"
     execute_cmd(cmd, cmtid)
-    cmd = "INSERT INTO msgboard VALUES (?, ?, ?, ?, ?)"
-    execute_cmd(cmd, cmtid, uin, content, pubtime, modifytime)
+    cmd = "INSERT INTO msgboard VALUES (?, ?, ?, ?, ?, ?)"
+    execute_cmd(cmd, cmtid, uin, content, pubtime, modifytime, replynum)
 
 def insert_msgreply(cmtid, rplid, uin, content, time):    
     cmd = "DELETE FROM msgreply WHERE cmtid=? and rplid=?"

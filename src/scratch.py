@@ -7,18 +7,17 @@ scratch.py - Scratch information from the web, and store in specified files
 # Usage samples:
 #     scratch_msgboard("../raw/msgboard.txt")
 #     scratch_bloglist("../raw/bloglist.txt")
+#     scratch_blogcmt("1226814446", "../raw/blogcmt.txt", True) 
 #     scratch_shuoshuo("../raw/shuoshuo.txt")
-#     scratch_albumlist("../raw/albumlist.txt")
-#     scratch_blogcmt("1226814446", "../raw/blogcmt.txt", True)   
+#     scratch_albumlist("../raw/albumlist.txt")  
 #     scratch_photolist("318908369", "../raw/photolist.txt", True)
-#     scratch_photocmt("318908369", "NDJ0n1.5FWCUkFHgzZsB.d*8X8AjAAA!", "../raw/photocmt.txt", True)    
-    
-
-import config
-import pool
+#     scratch_photocmt("318908369", "NDJ0n1.5FWCUkFHgzZsB.d*8X8AjAAA!", "../raw/photocmt.txt", True)        
 
 import copy
 import string
+
+import config
+import pool
 
 args_template = {
     # required
@@ -77,7 +76,7 @@ def scratch_bloglist(logfile):
     
     scratch_template(real_args)
 
-def scratch_blogcmt(blogid, logfile, append):
+def scratch_blogcmt(blogid, logfile, append = False):
     real_args = copy.deepcopy(args_template)
     real_args["host"] = "b1.qzone.qq.com"
     real_args["headers"] = {"Host": real_args["host"], "Cookie": config.COOKIE}
@@ -93,6 +92,8 @@ def scratch_blogcmt(blogid, logfile, append):
     
     real_args["mark1"] = "total\":"
     real_args["mark2"] = ","   
+    
+    real_args["append"] = append
     
     scratch_template(real_args)
 
@@ -139,7 +140,7 @@ def scratch_albumlist(logfile):
         if ret and n > 0:
             break
 
-def scratch_photolist(albumid, logfile, append):
+def scratch_photolist(albumid, logfile, append = False):
     real_args = copy.deepcopy(args_template)
     
     real_args["logfile"] = logfile
@@ -154,6 +155,8 @@ def scratch_photolist(albumid, logfile, append):
     
     real_args["mark1"] = "totalInAlbum\" : "
     real_args["mark2"] = ","
+        
+    real_args["append"] = append
     
     # try following known servers until get the list, still not always work
     album_hosts = ['hzplist.photo.qq.com']    
@@ -164,7 +167,7 @@ def scratch_photolist(albumid, logfile, append):
         if ret and n > 0:
             break
 
-def scratch_photocmt(albumid, photoid, logfile, append):
+def scratch_photocmt(albumid, photoid, logfile, append = False):
     real_args = copy.deepcopy(args_template)
     real_args["host"] = "app.photo.qq.com"
     real_args["headers"] = {"Host": real_args["host"], "Cookie": config.COOKIE}
@@ -181,6 +184,8 @@ def scratch_photocmt(albumid, photoid, logfile, append):
     
     real_args["mark1"] = "total\" : "
     real_args["mark2"] = "\n"   
+            
+    real_args["append"] = append
     
     scratch_template(real_args)
 

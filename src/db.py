@@ -6,8 +6,7 @@ db.py - Communicate with SQLite database
 
 import sqlite3
 
-dbfile = "../db/qzone.db"
-sqlfile = "../db/db.sql"
+import config
 
 conn = None
 cursor = None
@@ -25,36 +24,125 @@ def execute_script(script):
     return cursor.executescript(script)
 
 def init_conn():
-    global dbfile
     global conn, cursor
     if conn is None:
-        print "connect to %s..." % dbfile,
-        conn = sqlite3.connect(dbfile)
+        print "connect to %s..." % config.dbfile,
+        conn = sqlite3.connect(config.dbfile)
         cursor = conn.cursor()
         print "done."
 
 def init_db():
-    global dbfile, sqlfile
-    
-    print "clear %s..." % dbfile,
+    print "clear %s..." % config.dbfile,
     f = open(dbfile, 'w')
     f.close()
     print "done."
     
-    print "load %s..." % sqlfile
-    f = open(sqlfile)
+    print "load %s..." % config.sqlfile
+    f = open(config.sqlfile)
     execute_script(f.read())
     f.close()
     print "...done."
 
-def insert_msgboard(cmtid, uin, content, pubtime, modifytime, replynum):
-    cmd = "DELETE FROM msgboard WHERE cmtid=?"
-    execute_cmd(cmd, cmtid)
-    cmd = "INSERT INTO msgboard VALUES (?, ?, ?, ?, ?, ?)"
-    execute_cmd(cmd, cmtid, uin, content, pubtime, modifytime, replynum)
+# Message board
+def insert_msgboard(*args):
+    knames = ["cmtid"]
+    insert_template("msgboard", knames, *args)
 
-def insert_msgreply(cmtid, rplid, uin, content, time):    
-    cmd = "DELETE FROM msgreply WHERE cmtid=? and rplid=?"
-    execute_cmd(cmd, cmtid, rplid)
-    cmd = "INSERT INTO msgreply VALUES (?, ?, ?, ?, ?)"
-    execute_cmd(cmd, cmtid, rplid, uin, content, time)
+def insert_msgreply(*args):    
+    knames = ["cmtid", "rplid"]
+    insert_template("msgreply", knames, *args)
+
+# Blogs
+def insert_bloglist(*args):    
+    knames = ["blogid"]
+    insert_template("bloglist", knames, *args)
+
+def insert_blogcmt(*args):    
+    knames = ["blogid", "cmtid"]
+    insert_template("blogcmt", knames, *args)
+
+def insert_blogreply(*args):    
+    knames = ["blogid", "cmtid", "rplid"]
+    insert_template("ssreply", knames, *args)
+
+# Shuo Shuo    
+def insert_sslist(*args):    
+    knames = ["ssid"]
+    insert_template("sslist", knames, *args)
+
+def insert_sscmt(*args):    
+    knames = ["ssid", "cmtid"]
+    insert_template("sscmt", knames, *args)
+
+def insert_ssreply(*args):    
+    knames = ["ssid", "cmtid", "rplid"]
+    insert_template("ssreply", knames, *args)
+
+# Photos
+def insert_albumlist(*args):    
+    knames = ["albumid"]
+    insert_template("albumlist", knames, *args)
+
+def insert_photolist(*args):    
+    knames = ["albumid", "photoid"]
+    insert_template("photolist", knames, *args)
+
+def insert_photocmt(*args):    
+    knames = ["albumid", "photoid", "cmtid"]
+    insert_template("photocmt", knames, *args)
+
+def insert_photoreply(*args):    
+    knames = ["albumid", "photoid", "cmtid", "rplid"]
+    insert_template("photoreply", knames, *args)
+
+def query_bloglist():
+    lst = query_template("bloglist", ["blogid"], None)
+    return [t[0] for t in lst]
+
+def query_albumlist():
+    lst = query_template("albumlist", ["albumid"], None)
+    return [t[0] for t in lst]
+
+def query_photolist(albumid):
+    lst = query_template("photolist", ["photoid"], ["albumid"], albumid)
+    return [t[0] for t in lst]
+
+'''
+Internal helper functions
+'''
+
+def insert_template(tablename, knames, *args):
+    '''
+    According to DELETE&INSERT to add one record into the database
+    '''
+    knames = list(kn+"=? " for kn in knames)
+    cmd = "DELETE FROM %s WHERE %s" % (tablename, "and ".join(knames))
+    execute_cmd(cmd, *args[:len(knames)])
+    
+    splst = ["?" for i in range(len(args))]
+    cmd = "INSERT INTO %s VALUES (%s)" % (tablename, ",".join(splst))
+    execute_cmd(cmd, *args)
+    
+def query_template(tablename, cnames, knames, *args):
+    '''
+    @param tablename: the table to be queried
+    @param cnames: the list of columns to be selected
+    @param knames: the list of condition names
+    @param args: N values that used in WHERE clauses   
+    @return: a list, whose elements are tuples of one row in database
+    '''
+    if cnames is None:
+        select = "*"
+    else:
+        select = ",".join(cnames)
+        
+    if knames is None:
+        where = ""
+    else:
+        knames = list(kn+"=? " for kn in knames)
+        where = " WHERE %s" % "and ".join(knames)
+    
+    # local cursor
+    cmd = "SELECT %s FROM %s %s" % (select, tablename, where)
+    cursor = execute_cmd(cmd, *args)
+    return cursor.fetchall()

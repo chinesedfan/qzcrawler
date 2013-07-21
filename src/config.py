@@ -26,10 +26,9 @@ rawfile = {
     "photolist": "../raw/photolist.txt",
     "photocmt": "../raw/photocmt.txt",    
 }
+retry = 5    # retry times
+timeout = 2  # timeout for web operations
 
 # database related
 dbfile = "../db/qzone.db"
 sqlfile = "../db/db.sql"
-
-# retry times
-retry = 5

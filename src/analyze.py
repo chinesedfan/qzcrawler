@@ -24,7 +24,7 @@ def analyze_msgboard(logfile):
                 rpl = rpllst[i]
                 db.insert_msgreply(cmt["id"], i, rpl["uin"], 
                                    rpl["content"], rpl["time"])
-    db.conn.commit()
+    db.execute_commit()
     print "...done."
 
 def analyze_bloglist(logfile):
@@ -36,7 +36,7 @@ def analyze_bloglist(logfile):
         for blog in bloglst:
             db.insert_bloglist(blog["blogId"], blog["cate"], blog["title"], 
                                blog["pubTime"], blog["commentNum"])    
-    db.conn.commit()
+    db.execute_commit()
     print "...done."
 
 def analyze_blogcmt(blogid, logfile):
@@ -54,7 +54,7 @@ def analyze_blogcmt(blogid, logfile):
             for rpl in rpllst:
                 db.insert_blogreply(blogid, cmt["id"], rpl["id"], rpl["poster"]["id"], 
                                    rpl["content"], rpl["postTime"])    
-    db.conn.commit()
+    db.execute_commit()
     print "...done."
 
 def analyze_shuoshuo(logfile):
@@ -64,13 +64,12 @@ def analyze_shuoshuo(logfile):
         msglst = data["msglist"]
         print "got msgList=%d" % len(msglst)
         for msg in msglst:
-            db.insert_sslist(msg["tid"], msg["content"], msg["createTime"],
-                             msg["cmtnum"], msg["fwdnum"], msg["right"])
-            if not "commentlist" in msglst:
+            db.insert_sslist(msg["tid"], msg["content"], msg["createTime"], msg["cmtnum"])
+            if not "commentlist" in msg:
                 continue       
             
             # someone adds comments on this message
-            cmtlst = msglst["commentlist"]
+            cmtlst = msg["commentlist"]
             print "got commentList=%d" % len(cmtlst)
             for cmt in cmtlst:
                 db.insert_sscmt(msg["tid"], cmt["tid"], cmt["uin"], cmt["content"],
@@ -80,12 +79,12 @@ def analyze_shuoshuo(logfile):
                     continue
                 
                 # someone replies on this comment            
-                rpllist = cmt["list_3"]
+                rpllst = cmt["list_3"]
                 print "got replyList=%d" % len(rpllst)
                 for rpl in rpllst:
-                    db.insert_msgreply(msg["tid"], cmt["tid"], rpl["tid"], rpl["uin"], 
+                    db.insert_ssreply(msg["tid"], cmt["tid"], rpl["tid"], rpl["uin"], 
                                        rpl["content"], rpl["createTime"])
-    db.conn.commit()
+    db.execute_commit()
     print "...done."
 
 def analyze_albumlist(logfile):
@@ -97,7 +96,7 @@ def analyze_albumlist(logfile):
         for album in albumlst:
             db.insert_albumlist(album["id"], album["name"], album["desc"], album["createtime"],
                                 album["lastuploadtime"], album["modifytime"], album["total"])    
-    db.conn.commit()
+    db.execute_commit()
     print "...done."
 
 def analyze_photolist(albumid, logfile):
@@ -105,29 +104,36 @@ def analyze_photolist(albumid, logfile):
         data = json.loads(s)
         
         photolst = data["data"]["photoList"]
+        # no photo in this album
+        if photolst is None:
+            break
         print "got photolst=%d" % len(photolst)
         for photo in photolst:
             db.insert_photolist(albumid, photo["lloc"], photo["name"], photo["desc"], 
                                 photo["uploadtime"], photo["forum"])
-    db.conn.commit()
+    db.execute_commit()
     print "...done."  
 
 def analyze_photocmt(albumid, photoid, logfile):
     for s in get_jsonstr(logfile):
         data = json.loads(s)
         
-        cmtlst = data["data"]["comments"]        
+        cmtlst = []
+        if "comments" in data["data"]:
+            cmtlst = data["data"]["comments"]        
         print "got commentList=%d" % len(cmtlst)
         for cmt in cmtlst:
-            rpllst = cmt["replies"]
+            rpllst = []
+            if "replies" in cmt:
+                rpllst = cmt["replies"]
             db.insert_photocmt(albumid, photoid, cmt["id"], cmt["poster"]["id"], cmt["content"],
                                cmt["postTime"], len(rpllst))
     
             print "got replyList=%d" % len(rpllst)
             for rpl in rpllst:
-                db.insert_photoreply(albumid, photoid, cmt["id"], rpl["poster"]["id"], 
+                db.insert_photoreply(albumid, photoid, cmt["id"], rpl["id"], rpl["poster"]["id"], 
                                    rpl["content"], rpl["postTime"])    
-    db.conn.commit()
+    db.execute_commit()
     print "...done."
 
 '''

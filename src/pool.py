@@ -5,6 +5,7 @@ pool.py - Maintain HTTP/HTTPS connections
 '''
 
 import httplib
+import sys
 
 import config
 
@@ -23,12 +24,14 @@ Internal helper functions
 
 def get_connection_template(kind, host):
     global http_pool, https_pool
+    f = None
+    pool = {}
     
     print "try to get %s connection to %s..." % (kind, host)
-    if "kind" == "http":
+    if kind == "http":
         f = httplib.HTTPConnection
         pool = http_pool
-    elif "kind" == "https":
+    elif kind == "https":
         f = httplib.HTTPSConnection
         pool = https_pool
         
@@ -36,18 +39,18 @@ def get_connection_template(kind, host):
         # retry several times
         for i in range(config.retry):
             try:
-                conn = f(host)
+                conn = f(host, timeout = config.timeout)
                 conn.connect()
+                
+                print "...create %s connection to %s" % (kind, host)
+                pool[host] = conn
                 break
             except:
-                if i == config.retry:
-                    print "...failed, abort to retry"
-                    print sys.exc_info()
-                else:
-                    print "...retry, i=%d" % i
-                    continue
-            
-        print "...create %s connection to %s" % (kind, host)
-        pool[host] = conn
+                print sys.exc_info()
+                if i == config.retry - 1:
+                    print "...abort to retry, exit"
+                    sys.exit()
+                print "...retry, i=%d" % i
+                continue                    
     print "...done."
     return pool[host]

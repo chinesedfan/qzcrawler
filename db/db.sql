@@ -1,4 +1,4 @@
-CREATE TABLE albumlist (albumid integer PRIMARY KEY,name text,"desc" text,createtime timestamp,lastuploadtime timestamp,modifytime timestamp,total integer);
+CREATE TABLE albumlist (albumid text PRIMARY KEY,name text,"desc" text,createtime timestamp,lastuploadtime timestamp,modifytime timestamp,total integer);
 CREATE TABLE blogcmt (blogid integer,cmtid integer,posterid integer,content text,posttime timestamp,replynum integer,PRIMARY KEY (blogid,cmtid));
 CREATE TABLE bloglist (blogid integer PRIMARY KEY,cate text,title text,pubtime timestamp,cmtnum integer);
 CREATE TABLE blogreply (blogid integer,cmtid integer,rplid integer,posterid text,content text,posttime timestamp,PRIMARY KEY (blogid,cmtid,rplid));
@@ -7,6 +7,6 @@ CREATE TABLE msgreply (cmtid integer,rplid integer,uin integer,content text,"tim
 CREATE TABLE photocmt (albumid text,photoid text,cmtid integer,posterid integer,content text,posttime timestamp,replynum integer,PRIMARY KEY (albumid,photoid,cmtid));
 CREATE TABLE photolist (albumid text,photoid text,name text,"desc" text,uploadtime timestamp,cmtnum integer,PRIMARY KEY (albumid,photoid));
 CREATE TABLE photoreply (albumid text,photoid text,cmtid integer,rplid integer,posterid integer,content text,posttime timestamp,PRIMARY KEY (albumid,photoid,cmtid,rplid));
-CREATE TABLE sscmt (ssid integer,cmtid integer,uin integer,content text,createtime timestamp,replynum integer,PRIMARY KEY (ssid,cmtid));
-CREATE TABLE sslist (ssid integer PRIMARY KEY,content text,createtime timestamp,cmtnum integer,fwdnum integer,zannum integer);
-CREATE TABLE ssreply (ssid integer,cmtid integer,rplid integer,uin integer,content text,createtime timestamp,PRIMARY KEY (ssid,cmtid,rplid));
+CREATE TABLE sscmt (ssid text,cmtid integer,uin integer,content text,createtime timestamp,replynum integer,PRIMARY KEY (ssid,cmtid));
+CREATE TABLE sslist (ssid text PRIMARY KEY,content text,createtime timestamp,cmtnum integer);
+CREATE TABLE ssreply (ssid text,cmtid integer,rplid integer,uin integer,content text,createtime timestamp,PRIMARY KEY (ssid,cmtid,rplid));

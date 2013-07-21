@@ -15,6 +15,7 @@ scratch.py - Scratch information from the web, and store in specified files
 
 import copy
 import string
+import sys
 
 import config
 import pool
@@ -35,6 +36,7 @@ args_template = {
     "append": False,
     "code": "gbk",
     "connection_type": "http",
+    "exit": True,
     "method": "GET",
     "postdata": "",
 }
@@ -120,7 +122,7 @@ def scratch_albumlist(logfile):
     real_args = copy.deepcopy(args_template)
     
     real_args["logfile"] = logfile
-    real_args["num"] = 100
+    real_args["num"] = 10
     real_args["scratch_item"] = "albumlist"
     real_args["url_template"] = "/fcgi-bin/fcg_list_album_v2?" \
         + "uin=%s&hostUin=%s" % (config.G_QQ, config.H_QQ) \
@@ -136,6 +138,7 @@ def scratch_albumlist(logfile):
     for host in album_hosts:  
         real_args["host"] = host
         real_args["headers"] = {"Host": real_args["host"], "Cookie": config.COOKIE}
+        real_args["exit"] = (host == album_hosts[-1])
         ret, n = scratch_template(real_args)
         if ret and n > 0:
             break
@@ -193,6 +196,7 @@ def scratch_photocmt(albumid, photoid, logfile, append = False):
 Internal helper function
 '''
 
+# TODO: how to handle failures and retry?
 def scratch_template(args):
     host = args["host"]
     if args["connection_type"] == "HTTPS":
@@ -220,29 +224,36 @@ def scratch_template(args):
     else:
         f = open(logfile, "w")
     
+    times = 1
     while start < total:
         print "start=%d total=%d" % (start, total)
         url = url_template % (num, start)
-        conn.request(args["method"], url, args["postdata"], args["headers"])
+        content = ""
         try:
+            conn.request(args["method"], url, args["postdata"], args["headers"])
             resp = conn.getresponse()
-        except:
-            continue
         
-        if resp.status != 200:
-            print "...failed, returns %d" % resp.status
-            return False, -1
-        content = resp.read().decode(code)
+            if resp.status != 200:
+                raise Exception("...status failed, returns %d" % resp.status)
+            content = resp.read().decode(code)
     
-        # update the real total count, if a function or value has been provided
-        if not flag:
-            pos1 = content.find(args["mark1"])
-            if pos1 < 0:
-                print "...failed, not found"
-                return False, -1
-            pos2 = content.find(args["mark2"], pos1)
-            total = string.atoi(content[pos1+len(args["mark1"]):pos2])
-         
+            # update the real total count, if a function or value has been provided
+            if not flag:
+                pos1 = content.find(args["mark1"])
+                if pos1 < 0:
+                    raise Exception("...not found")
+                pos2 = content.find(args["mark2"], pos1)
+                total = string.atoi(content[pos1+len(args["mark1"]):pos2])
+        except:
+            print sys.exc_info()
+            if (times == config.retry):
+                print "...failed, abort to retry"
+                if args["exit"]:
+                    sys.exit()
+                else:
+                    return False, -1
+            times = times + 1
+            continue     
         f.write(content)
         f.write("\n")
          

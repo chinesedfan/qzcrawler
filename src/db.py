@@ -23,6 +23,10 @@ def execute_script(script):
     init_conn()
     return cursor.executescript(script)
 
+def execute_commit():
+    if conn:
+        conn.commit()
+
 def init_conn():
     global conn, cursor
     if conn is None:
@@ -33,7 +37,7 @@ def init_conn():
 
 def init_db():
     print "clear %s..." % config.dbfile,
-    f = open(dbfile, 'w')
+    f = open(config.dbfile, 'w')
     f.close()
     print "done."
     
@@ -63,7 +67,7 @@ def insert_blogcmt(*args):
 
 def insert_blogreply(*args):    
     knames = ["blogid", "cmtid", "rplid"]
-    insert_template("ssreply", knames, *args)
+    insert_template("blogreply", knames, *args)
 
 # Shuo Shuo    
 def insert_sslist(*args):    

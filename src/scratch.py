@@ -196,7 +196,6 @@ def scratch_photocmt(albumid, photoid, logfile, append = False):
 Internal helper function
 '''
 
-# TODO: how to handle failures and retry?
 def scratch_template(args):
     host = args["host"]
     if args["connection_type"] == "HTTPS":
@@ -216,7 +215,7 @@ def scratch_template(args):
         total = args["total"]
         flag = True
     else: 
-        total = num
+        total = start + num
     
     logfile = args["logfile"] 
     if args["append"]:
@@ -235,8 +234,8 @@ def scratch_template(args):
         
             if resp.status != 200:
                 raise Exception("...status failed, returns %d" % resp.status)
-            content = resp.read().decode(code)
-    
+            content = resp.read().decode(code, "replace")
+
             # update the real total count, if a function or value has been provided
             if not flag:
                 pos1 = content.find(args["mark1"])
@@ -254,7 +253,7 @@ def scratch_template(args):
                     return False, -1
             times = times + 1
             continue     
-        f.write(content)
+        f.write(content) # encoding like Eclipse editor - gbk
         f.write("\n")
          
         start = start + num

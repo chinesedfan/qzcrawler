@@ -140,9 +140,9 @@ def analyze_photocmt(albumid, photoid, logfile):
 Internal helper functions
 '''
 
-def get_jsonstr(logfile, code = "gbk"):
+def get_jsonstr(logfile):
     f = open(logfile)
-    content = f.read().decode(code)
+    content = f.read()
     
     lst = []
     callbacks = content.split("_Callback")

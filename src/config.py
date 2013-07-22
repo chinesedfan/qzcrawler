@@ -16,6 +16,9 @@ G_QQ = "123456789"
 G_TK = "1234567890"
 COOKIE = "key1=value1;key2=value2;"
 
+# IDE coding
+code = "gbk"
+
 # scratch related
 rawfile = {
     "msgboard": "../raw/msgboard.txt",

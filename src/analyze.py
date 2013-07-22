@@ -7,6 +7,7 @@ analyze.py - Analysis from the scratched file, and save into the database
 import json
 
 import db
+import config
 
 def analyze_msgboard(logfile):
     for s in get_jsonstr(logfile):
@@ -142,7 +143,7 @@ Internal helper functions
 
 def get_jsonstr(logfile):
     f = open(logfile)
-    content = f.read()
+    content = f.read().decode(config.code) # Use the saved coding
     
     lst = []
     callbacks = content.split("_Callback")

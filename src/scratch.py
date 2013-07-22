@@ -234,7 +234,7 @@ def scratch_template(args):
         
             if resp.status != 200:
                 raise Exception("...status failed, returns %d" % resp.status)
-            content = resp.read().decode(code, "replace")
+            content = resp.read().decode(code, "ignore")
 
             # update the real total count, if a function or value has been provided
             if not flag:
@@ -253,7 +253,7 @@ def scratch_template(args):
                     return False, -1
             times = times + 1
             continue     
-        f.write(content) # encoding like Eclipse editor - gbk
+        f.write(content) # encoding the same as the editor automatically
         f.write("\n")
          
         start = start + num

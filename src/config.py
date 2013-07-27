@@ -22,12 +22,16 @@ code = "gbk"
 # scratch related
 rawfile = {
     "msgboard": "../raw/msgboard.txt",
-    "bloglist": "../raw/bloglist.txt",
-    "blogcmt": "../raw/blogcmt.txt",
+    "bloglist": "../raw/bloglist.txt",    
     "shuoshuo": "../raw/shuoshuo.txt",
     "albumlist": "../raw/albumlist.txt",
+    # reuse these files, override every time
+    "blogcmt": "../raw/blogcmt.txt",
     "photolist": "../raw/photolist.txt",
-    "photocmt": "../raw/photocmt.txt",    
+    "photocmt": "../raw/photocmt.txt",
+    # avoid to override, and directories should end with slash
+    "blogdir": "../raw/blog/",
+    "albumdir": "../raw/album/",   
 }
 retry = 5    # retry times
 timeout = 2  # timeout for web operations

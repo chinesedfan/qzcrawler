@@ -17,7 +17,7 @@ def analyze_msgboard(logfile):
         print "got commentList=%d" % len(cmtlst)
         for cmt in cmtlst:
             rpllst = cmt["replyList"]
-            db.insert_msgboard(cmt["id"], cmt["uin"], cmt["ubbContent"],
+            db.insert_msgboard(cmt["id"], cmt["uin"], json.dumps(cmt["ubbContent"], ensure_ascii=False),
                                cmt["pubtime"], cmt["modifytime"], len(rpllst))
     
             print "got replyList=%d" % len(rpllst)
@@ -48,7 +48,7 @@ def analyze_blogcmt(blogid, logfile):
         print "got commentList=%d" % len(cmtlst)
         for cmt in cmtlst:
             rpllst = cmt["replies"]
-            db.insert_blogcmt(blogid, cmt["id"], cmt["poster"]["id"], cmt["content"],
+            db.insert_blogcmt(blogid, cmt["id"], cmt["poster"]["id"], json.dumps(cmt["content"], ensure_ascii=False),
                                cmt["postTime"], len(rpllst))
     
             print "got replyList=%d" % len(rpllst)

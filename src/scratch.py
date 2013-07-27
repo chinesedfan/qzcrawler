@@ -16,6 +16,7 @@ scratch.py - Scratch information from the web, and store in specified files
 import copy
 import string
 import sys
+import time
 
 import config
 import pool
@@ -252,6 +253,8 @@ def scratch_template(args):
                 else:
                     return False, -1
             times = times + 1
+            # wait for a while to re-request
+            time.sleep(1)
             continue     
         f.write(content) # encoding the same as the editor automatically
         f.write("\n")

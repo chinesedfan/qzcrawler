@@ -4,6 +4,8 @@
 main.py - Main entry
 '''
 
+import hashlib
+
 import config
 import scratch
 import analyze
@@ -18,9 +20,9 @@ def do_blog():
     analyze.analyze_bloglist(config.rawfile["bloglist"])
     bloglst = db.query_bloglist()
     for blogid in bloglst:
-        # override the file each time
-        scratch.scratch_blogcmt(blogid, config.rawfile["blogcmt"])
-        analyze.analyze_blogcmt(blogid, config.rawfile["blogcmt"])
+        cmtfile = config.rawfile["blogdir"] + str(blogid) + ".txt"
+        scratch.scratch_blogcmt(blogid, cmtfile)
+        analyze.analyze_blogcmt(blogid, cmtfile)
 
 def do_shuoshuo():
     scratch.scratch_shuoshuo(config.rawfile["shuoshuo"])
@@ -31,15 +33,16 @@ def do_photos():
     analyze.analyze_albumlist(config.rawfile["albumlist"])
     albumlst = db.query_albumlist()
     for albumid in albumlst:
-        # override the file each time
-        scratch.scratch_photolist(albumid, config.rawfile["photolist"])
-        analyze.analyze_photolist(albumid, config.rawfile["photolist"])
+        plfile = config.rawfile["albumdir"] + albumid + "_photolist.txt"
+        scratch.scratch_photolist(albumid, plfile)
+        analyze.analyze_photolist(albumid, plfile)
         
         photolst = db.query_photolist(albumid)
         for photoid in photolst:
-            # override the file each time
-            scratch.scratch_photocmt(albumid, photoid, config.rawfile["photocmt"])
-            analyze.analyze_photocmt(albumid, photoid, config.rawfile["photocmt"])
+            pcfile = config.rawfile["albumdir"] + albumid + "_" \
+                + hashlib.md5(photoid).hexdigest().upper() + "_photocmt.txt"
+            scratch.scratch_photocmt(albumid, photoid, pcfile)
+            analyze.analyze_photocmt(albumid, photoid, pcfile)
 
 def main():
     # prepare the database

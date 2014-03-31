@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
 
 '''
 scratch.py - Scratch information from the web, and store in specified files
@@ -186,7 +187,7 @@ def scratch_photocmt(albumid, photoid, logfile, append = False):
         + "&topicId=%s_%s" % (albumid, photoid) \
         + "&num=%d&start=%d"
     
-    real_args["mark1"] = "total\" : "
+    real_args["mark1"] = "\"total\" : "
     real_args["mark2"] = "\n"   
             
     real_args["append"] = append
@@ -256,7 +257,7 @@ def scratch_template(args):
             # wait for a while to re-request
             time.sleep(1)
             continue     
-        f.write(content) # encoding the same as the editor automatically
+        f.write(content.encode(config.code)) # encoding the same as the editor, or failed to open and analyze
         f.write("\n")
          
         start = start + num

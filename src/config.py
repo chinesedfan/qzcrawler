@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
 
 '''
 config.py - Global configuration
@@ -16,7 +17,7 @@ G_QQ = "123456789"
 G_TK = "1234567890"
 COOKIE = "key1=value1;key2=value2;"
 
-# IDE coding
+# raw file coding
 code = "gbk"
 
 # scratch related

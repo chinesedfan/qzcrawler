@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#-*- coding: utf-8 -*-
 
 '''
 analyze.py - Analysis from the scratched file, and save into the database

@@ -6,7 +6,7 @@ login.py - Simulate to login and get the required information,
            which is inspired by https://github.com/junit/qzonelogin
 '''
 
-import pool
+import urllib2, cookielib
 import random
 import hashlib
 
@@ -112,14 +112,21 @@ def get_pwd(real_uin, pwd, vc):
 
     return code
 
+def install_opener():
+    cookie = cookielib.CookieJar()
+    cookieProc = urllib2.HTTPCookieProcessor(cookie)
+    opener = urllib2.build_opener(cookieProc)
+    
+    urllib2.install_opener(opener)
+
 def get_template(key, args):
     host = args["host"]
     url = args["url"]
     headers = {"Host": host}
     
-    conn = pool.get_http_connection(host)
-    conn.request("GET", url, None, headers)
-    resp = conn.getresponse()
+    # ATTENTION: instead of httplib, we use urllib2 here to manage cookies automatically
+    req = urllib2.Request("http://" + host + url, None, headers)
+    resp = urllib2.urlopen(req)
     content = resp.read()
     
     if not ("mark1" in args) or not ("mark2" in args):
@@ -137,13 +144,13 @@ def get_template(key, args):
     return value
 
 def main(uin, pwd):
+    install_opener()
+    
     login_sig = get_login_sig()
     vc = get_verify_code(uin, login_sig)
     if vc is None:
         get_vc_image(uin)
-        vc = raw_input("Please input vc:")
-        # acquire again
-        login_sig = get_login_sig()
+        vc = raw_input("Please input vc: ")
     
     pwd = get_pwd(get_real_uin(uin), pwd, vc)
     do_login(uin, pwd, vc, login_sig)

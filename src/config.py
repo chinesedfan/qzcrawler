@@ -5,6 +5,8 @@
 config.py - Global configuration
 '''
 
+import login
+
 # Attention:
 #     Don't store config.xxx in other modules, or changes of
 #     config.xxx would not take effects.
@@ -14,8 +16,8 @@ H_QQ = "123456789"
 G_QQ = "123456789"
 
 # authorization information
+PWD = "testpwd"
 G_TK = "1234567890"
-COOKIE = "key1=value1;key2=value2;"
 
 # raw file coding
 code = "gbk"

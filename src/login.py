@@ -62,7 +62,7 @@ def do_login(uin, pwd, vc, login_sig):
     @param uin: QQ number
     @param pwd: calculated by get_pwd, not QQ password
     @param vc: verfiy code
-    @login_sig: requested by get_login_sig
+    @param login_sig: requested by get_login_sig
     '''
     args = {}
     args["host"] = "ptlogin2.qq.com"
@@ -82,8 +82,26 @@ def do_login(uin, pwd, vc, login_sig):
     #         '4','0','','0','Verify code error, please reinput', '123456789'
     #         '0','0','http://qzs.qq.com/qzone/v5/loginsucc.html?para=izone&ptsig=1234567890abcdef','0','login ok', 'username'
     if values[0] != "\'0\'":
-        print "...failed to login"
-    print "login_info=%s" % values
+        raise Exception("...failed to login")
+
+def main(uin, pwd):
+    '''
+    @return: gtk and cookies string for config.py
+    '''
+    install_opener()
+    
+    login_sig = get_login_sig()
+    vc = get_verify_code(uin, login_sig)
+    if vc is None:
+        get_vc_image(uin)
+        vc = raw_input("Please input vc: ")
+    
+    pwd = get_pwd(get_real_uin(uin), pwd, vc)
+    do_login(uin, pwd, vc, login_sig)
+
+    cookies = get_cookies()
+    gtk = get_gtk(cookies["skey"])
+    return gtk, "; ".join([key+"="+cookies[key] for key in cookies.keys()])
 
 '''
 Internal helper function
@@ -112,12 +130,35 @@ def get_pwd(real_uin, pwd, vc):
 
     return code
 
+def get_gtk(skey):
+    magic = 5381
+    for c in skey:
+        magic += (magic << 5) + ord(c)
+    return magic & 0x7fffffff
+
 def install_opener():
-    cookie = cookielib.CookieJar()
-    cookieProc = urllib2.HTTPCookieProcessor(cookie)
+    global cj
+    cj = cookielib.CookieJar()
+    cookieProc = urllib2.HTTPCookieProcessor(cj)
     opener = urllib2.build_opener(cookieProc)
     
     urllib2.install_opener(opener)
+
+def get_cookies():
+    '''
+    @return: a dictionary which includes necessary cookies
+    '''
+    global cj
+    cookies = cj._cookies
+    keys = ["uin", "skey"]
+    results = {}
+    for domain in cookies.keys():
+        for path in cookies[domain].keys():
+            for name in cookies[domain][path].keys():
+                ck = cookies[domain][path][name]
+                if ck.name in keys:
+                    results[ck.name] = ck.value
+    return results
 
 def get_template(key, args):
     host = args["host"]
@@ -143,18 +184,9 @@ def get_template(key, args):
 
     return value
 
-def main(uin, pwd):
-    install_opener()
-    
-    login_sig = get_login_sig()
-    vc = get_verify_code(uin, login_sig)
-    if vc is None:
-        get_vc_image(uin)
-        vc = raw_input("Please input vc: ")
-    
-    pwd = get_pwd(get_real_uin(uin), pwd, vc)
-    do_login(uin, pwd, vc, login_sig)
-
+'''
+For Testing
+'''
 if __name__ == '__main__':
     uin = "123456789"
     pwd = "testpwd"

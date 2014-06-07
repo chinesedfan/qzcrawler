@@ -1,0 +1,4 @@
+# only keep tracking of this empty folder
+
+*
+!.gitignore

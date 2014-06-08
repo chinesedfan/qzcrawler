@@ -7,55 +7,63 @@ main.py - Main entry
 
 import hashlib
 
-import config
-import scratch
-import analyze
-import db
+from config import Config
+from scratch import Scratcher
+from analyze import Analyzer
+from db import CrawlerDb
 
-def do_msgboard():
-    scratch.scratch_msgboard(config.rawfile["msgboard"])
-    analyze.analyze_msgboard(config.rawfile["msgboard"])
+class Application(object):
+    def __init__(self, config):
+        self.config = config
+        self.scratcher = Scratcher(self.config)
+        self.analyzer = Analyzer(self.config)
+        self.db = CrawlerDb(self.config.dbfile)
 
-def do_blog():    
-    scratch.scratch_bloglist(config.rawfile["bloglist"])
-    analyze.analyze_bloglist(config.rawfile["bloglist"])
-    bloglst = db.query_bloglist()
-    for blogid in bloglst:
-        cmtfile = config.rawfile["blogdir"] + str(blogid) + ".txt"
-        scratch.scratch_blogcmt(blogid, cmtfile)
-        analyze.analyze_blogcmt(blogid, cmtfile)
+        # prepare the database
+        self.config.dbfile = "../db/%s.db" % self.config.H_QQ
+        self.db.init_db(self.config.sqlfile)
 
-def do_shuoshuo():
-    scratch.scratch_shuoshuo(config.rawfile["shuoshuo"])
-    analyze.analyze_shuoshuo(config.rawfile["shuoshuo"])
-    
-def do_photos():
-    scratch.scratch_albumlist(config.rawfile["albumlist"])
-    analyze.analyze_albumlist(config.rawfile["albumlist"])
-    albumlst = db.query_albumlist()
-    for albumid in albumlst:
-        plfile = config.rawfile["albumdir"] + albumid + "_photolist.txt"
-        scratch.scratch_photolist(albumid, plfile)
-        analyze.analyze_photolist(albumid, plfile)
+    def do_msgboard(self):
+        self.scratcher.scratch_msgboard(self.config.rawfile["msgboard"])
+        self.analyzer.analyze_msgboard(self.config.rawfile["msgboard"])
+
+    def do_blog(self):    
+        self.scratcher.scratch_bloglist(self.config.rawfile["bloglist"])
+        self.analyzer.analyze_bloglist(self.config.rawfile["bloglist"])
+        bloglst = self.db.query_bloglist()
+        for blogid in bloglst:
+            cmtfile = self.config.rawfile["blogdir"] + str(blogid) + ".txt"
+            self.scratcher.scratch_blogcmt(blogid, cmtfile)
+            self.analyzer.analyze_blogcmt(blogid, cmtfile)
+
+    def do_shuoshuo(self):
+        self.scratcher.scratch_shuoshuo(self.config.rawfile["shuoshuo"])
+        self.analyzer.analyze_shuoshuo(self.config.rawfile["shuoshuo"])
         
-        photolst = db.query_photolist(albumid)
-        for photoid in photolst:
-            pcfile = config.rawfile["albumdir"] + albumid + "_" \
-                + hashlib.md5(photoid).hexdigest().upper() + "_photocmt.txt"
-            scratch.scratch_photocmt(albumid, photoid, pcfile)
-            analyze.analyze_photocmt(albumid, photoid, pcfile)
+    def do_photos(self):
+        self.scratcher.scratch_albumlist(self.config.rawfile["albumlist"])
+        self.analyzer.analyze_albumlist(self.config.rawfile["albumlist"])
+        albumlst = self.db.query_albumlist()
+        for albumid in albumlst:
+            plfile = self.config.rawfile["albumdir"] + albumid + "_photolist.txt"
+            self.scratcher.scratch_photolist(albumid, plfile)
+            self.analyzer.analyze_photolist(albumid, plfile)
+            
+            photolst = self.db.query_photolist(albumid)
+            for photoid in photolst:
+                pcfile = self.config.rawfile["albumdir"] + albumid + "_" \
+                    + hashlib.md5(photoid).hexdigest().upper() + "_photocmt.txt"
+                self.scratcher.scratch_photocmt(albumid, photoid, pcfile)
+                self.analyzer.analyze_photocmt(albumid, photoid, pcfile)
 
-def main():
-    # prepare the database
-    config.dbfile = "../db/%s.db" % config.H_QQ
-    db.init_db()
-    
-    # web -> files -> db
-    do_msgboard()
-    do_blog()
-    do_shuoshuo()
-    do_photos()
-    print "Congratulations! All is done!"
+    def main(self):   
+        # web -> files -> db
+        self.do_msgboard()
+        self.do_blog()
+        self.do_shuoshuo()
+        self.do_photos()
+        print "Congratulations! All is done!"
     
 if __name__ == '__main__':
-    main()
+    app = Application(Config("123456789", "test", True))
+    app.main()

@@ -80,8 +80,8 @@ class BaseDb(object):
         return self.cursor.fetchall()
 
 class CrawlerDb(BaseDb):
-    def __init__(self, *args):
-        super(CrawlerDb, self).__init__(*args)
+    def __init__(self, dbfile):
+        super(CrawlerDb, self).__init__(dbfile)
         
     # Message board
     def insert_msgboard(self, *args):
@@ -147,6 +147,7 @@ class CrawlerDb(BaseDb):
         lst = self.query_template("photolist", ["photoid"], ["albumid"], albumid)
         return [t[0] for t in lst]
 
+# For testing
 if __name__ == '__main__':
     db = CrawlerDb("../db/test.db")
     db.init_db("../db/db.sql")

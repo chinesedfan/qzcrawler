@@ -16,7 +16,7 @@ class BasePool(object):
         self.timeout = timeout
         self.retry = retry
         
-    def get_instance(self, host):
+    def get_connection(self, host):
         if self.func is None:
             return None
 
@@ -39,16 +39,33 @@ class BasePool(object):
         print "...done."
         return self.pool[host]
 
-class HttpPool(BasePool):
+class HttpPool(BasePool):    
+    instance = None
+
     def __init__(self, timeout=2, retry=5):
         super(HttpPool, self).__init__("HTTP", httplib.HTTPConnection, timeout, retry)
-        
+
+    @staticmethod
+    def get_instance():
+        # FIXME: consider mulit-thread here
+        if HttpPool.instance is None:
+            HttpPool.instance = HttpPool()
+        return HttpPool.instance
 
 class HttpsPool(BasePool):
+    instance = None
+
     def __init__(self, timeout=2, retry=5):
-        super(HttpPool, self).__init__("HTTPS", httplib.HTTPSConnection, timeout, retry)
+        super(HttpsPool, self).__init__("HTTPS", httplib.HTTPSConnection, timeout, retry)
+
+    @staticmethod
+    def get_instance():
+        # FIXME: consider mulit-thread here
+        if Https.instance is None:
+            Https.instance = HttpsPool()
+        return Https.instance
 
 # For testing
 if __name__ == '__main__':
-    pool = HttpPool()
-    pool.get_instance("www.baidu.com")
+    pool = HttpPool.get_instance()
+    pool.get_connection("www.baidu.com")
